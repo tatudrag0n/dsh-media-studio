@@ -786,6 +786,12 @@ node --test
 
 `test/media.test.mjs` は純粋な変換ロジック、`test/music.test.mjs` は音名・スコア・自動作曲・WAV エンコード、`test/score.test.mjs` はスコアテキストの解析と整形、`test/soundfont.test.mjs` は SF2 の読み込みと実レンダリング、`test/video.test.mjs` は動画レシピの表・フレーム数計算・ffmpeg での実 MP4 書き出し、`test/graphics.test.mjs` はグラフのデータ読み取り（CSV / TSV / JSON）と実 PNG 描画・画像加工、`test/plugin.test.mjs` は Host の登録・経路・実際の SAPI 合成、`test/client.test.mjs` は Client のスロット登録とグリッド変換を検証します。SF2 が無い環境では SoundFont 系のテストは自動でスキップされます。
 
+## SFX / BGM プリセット
+
+`presets.js` に著作権フリー / ロイヤリティフリーのスタイルを参考にした
+テキストベースのプロンプトプリセット（`SFX_PRESETS`, `BGM_PRESETS`）を同梱しています。
+詳細は `docs/sfx-bgm-guide.md` を参照してください。
+
 ## ライセンス
 
 MIT — `LICENSE` を参照してください。

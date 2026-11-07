@@ -1081,7 +1081,6 @@ window.__ModuleLoader__.load({
         { key: 'speech', label: t('tab.speech'), icon: 'waveform' },
         { key: 'music', label: t('tab.music'), icon: 'note' },
         { key: 'transcribe', label: t('tab.transcribe'), icon: 'mic' },
-        { key: 'studio', label: t('tab.studio'), icon: 'sparkles' },
       ];
       return h('div', { className: 'mstudio-root' }, [
         h(Styles, { key: 'styles' }),
@@ -1145,8 +1144,6 @@ window.__ModuleLoader__.load({
             h(MusicTab, { t, capabilities })),
           h('div', { key: 'transcribe', style: { display: showTabs && tab === 'transcribe' ? 'block' : 'none' } },
             h(TranscribeTab, { t, capabilities })),
-          h('div', { key: 'studio', style: { display: showTabs && tab === 'studio' ? 'block' : 'none' } },
-            h(StudioTab, { t, capabilities })),
         ]),
       ]);
     }

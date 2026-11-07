@@ -430,12 +430,12 @@ test('the studio tab renders a tool picker, a JSON box, an example button and a 
   assert.doesNotThrow(() => plugin.studioTab({}));
 });
 
-test('the panel offers a studio tab and both dictionaries carry its keys', () => {
+test('the panel no longer offers a studio tab, but studio locale keys and the tool route remain', () => {
   const { ctx, slots, localeRegistrations } = fakeCtx();
   loaded.factory(() => React).apply(ctx);
   const main = slots.find((entry) => entry.slot === 'main');
   const labels = labelsOf(flatten(main.component({ t: (key) => key })));
-  assert.ok(labels.includes('tab.studio'), 'the studio tab must exist');
+  assert.ok(!labels.includes('tab.studio'), 'the studio tab must be removed from the panel');
 
   const plugin = loaded.factory(() => React);
   const { en, ja } = localeRegistrations[0].dictionaries;
