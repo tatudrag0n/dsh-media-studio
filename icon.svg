@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Media Studio">
+  <defs>
+    <linearGradient id="ms-bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2b7de9"/>
+      <stop offset="0.55" stop-color="#6a4bd6"/>
+      <stop offset="1" stop-color="#c33f8f"/>
+    </linearGradient>
+    <linearGradient id="ms-sky" x1="16" y1="16" x2="34" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe9a8"/>
+      <stop offset="1" stop-color="#ff9d6b"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#ms-bg)"/>
+  <rect x="10" y="12" width="44" height="30" rx="7" fill="#12172b" opacity="0.55"/>
+  <rect x="12" y="14" width="40" height="26" rx="5" fill="url(#ms-sky)"/>
+  <path d="M14 36l9-10 7 7 6-8 10 13H14z" fill="#12172b" opacity="0.45"/>
+  <circle cx="24" cy="21" r="3" fill="#fff7e6" opacity="0.95"/>
+  <g fill="#ffffff">
+    <rect x="18" y="47" width="3" height="7" rx="1.5"/>
+    <rect x="23" y="44" width="3" height="13" rx="1.5"/>
+    <rect x="28" y="46" width="3" height="9" rx="1.5"/>
+    <rect x="33" y="42" width="3" height="17" rx="1.5"/>
+    <rect x="38" y="45" width="3" height="11" rx="1.5"/>
+    <rect x="43" y="48" width="3" height="5" rx="1.5"/>
+  </g>
+</svg>

@@ -1,0 +1,134 @@
+# Media Studio: image generation, video generation, speech synthesis, and
+# voice-input transcription for the Harness Web UI.
+#
+# Optional row config (defaults in parentheses). Every field is optional and
+# the user's own patch layer can override any of it:
+#
+#   outputDir                     workspace subdirectory for tool-saved media ('media-studio')
+#   image.provider                'local' (diffusers, needs torch) | 'comfyui' | 'openai' | 'pollinations'
+#   image.baseURL                 OpenAI-compatible image endpoint ('https://api.openai.com/v1')
+#   image.apiKeyEnv               credential name resolved for the image endpoint ('OPENAI_API_KEY')
+#   image.apiKey                  literal key; prefer apiKeyEnv (absent)
+#   image.model                   provider model id ('gpt-image-1' / pollinations 'flux')
+#   image.size                    default aspect for OpenAI endpoints ('1024x1024')
+#   image.timeoutMs               whole-request ceiling (120000)
+#   video.provider                'local' (diffusers on this machine) | 'comfyui' | 'openai' | 'frames'
+#   video.baseURL                 endpoint for the 'comfyui' and 'openai' providers
+#   video.apiKeyEnv               credential name for the 'openai' provider ('OPENAI_API_KEY')
+#   video.apiKey                  literal key; prefer apiKeyEnv (absent)
+#   video.model                   provider model id (recipe default per provider)
+#   video.recipe                  local recipe: 'svd' | 'wan21' | 'cogvideox' | 'ltx' ('svd')
+#   video.pythonPath              interpreter that has torch + diffusers ('' = search)
+#   video.ffmpegPath              ffmpeg executable used to write the MP4 ('' = search)
+#   video.seconds                 default length in seconds (4)
+#   video.fps                     default frame rate (8)
+#   video.width / video.height    default frame size in pixels (1024 x 576)
+#   video.steps                   default sampling steps for the local recipes (25)
+#   video.workflowPath            ComfyUI workflow JSON for the 'comfyui' provider
+#   video.timeoutMs               whole-request ceiling (1800000)
+#   graphics.pythonPath           interpreter that has Pillow ('' = video.pythonPath)
+#   graphics.ffmpegPath           ffmpeg executable used to edit pictures ('' = video.ffmpegPath)
+#   graphics.theme                chart colour theme: 'light' | 'dark' ('light')
+#   graphics.width / graphics.height   default chart canvas in pixels (1200 x 675)
+#   graphics.timeoutMs            whole-request ceiling (120000)
+#   motion.pythonPath             interpreter that has Pillow ('' = graphics.pythonPath)
+#   motion.ffmpegPath             ffmpeg executable used to encode the animation ('' = graphics.ffmpegPath)
+#   motion.width / motion.height  default motion canvas in pixels (1280 x 720)
+#   motion.seconds                default length of a motion graphic in seconds (4)
+#   motion.fps                    default frame rate (30)
+#   motion.timeoutMs              whole-request ceiling (300000)
+#   production.pythonPath         interpreter that has Pillow ('' = motion.pythonPath)
+#   production.ffmpegPath         ffmpeg executable used to cut the scenes ('' = motion.ffmpegPath)
+#   production.width / production.height  default production canvas in pixels (1280 x 720)
+#   production.fps                default frame rate (30)
+#   production.timeoutMs          whole-request ceiling (900000)
+#   assets.maxBytes               upload ceiling for one material (268435456)
+#   assets.directory              material library folder ('' = %DSH_HOME%/media-studio/assets)
+#   speech.provider               'system' (Windows SAPI, offline) | 'openai' (system)
+#   speech.baseURL                OpenAI-compatible speech endpoint ('https://api.openai.com/v1')
+#   speech.apiKeyEnv              credential name resolved for the speech endpoint ('OPENAI_API_KEY')
+#   speech.apiKey                 literal key; prefer apiKeyEnv (absent)
+#   speech.model                  OpenAI speech model ('gpt-4o-mini-tts')
+#   speech.voice                  voice id for either provider ('' = pick by text language)
+#   speech.rate                   SAPI rate, -10..10 (0)
+#   speech.format                 'wav' | 'mp3' ('wav')
+#   transcription.provider        'harness' (the mounted speech-to-text provider) | 'openai' (harness)
+#   transcription.baseURL         OpenAI-compatible transcription endpoint ('https://api.openai.com/v1')
+#   transcription.apiKeyEnv       credential name resolved for the transcription endpoint ('OPENAI_API_KEY')
+#   transcription.apiKey          literal key; prefer apiKeyEnv (absent)
+#   transcription.model           OpenAI transcription model ('whisper-1')
+#   transcription.language        language hint for both providers ('ja')
+#   transcription.timeoutMs       inference ceiling (180000)
+#   soundfont.path                absolute path to a .sf2 bank; '' disables SoundFont instruments
+#   soundfont.gain                output gain applied to SoundFont renders (1)
+#   soundfont.releaseSeconds      tail rendered after the last note (1.2)
+#   music.maxNotes                most notes one piece may hold (8192)
+#   music.maxSeconds              longest piece in seconds (600)
+#   maxAudioBytes                 upload ceiling for voice input (8388608)
+- insert:
+    - id: media-studio
+      name: '@local/dsh-media-studio'
+      config:
+        # Local, key-free defaults: a local diffusers model for images, Windows SAPI for
+        # speech, and the harness's own speech-to-text provider for voice input.
+        image:
+          # このマシンの ComfyUI に Z-Image-Turbo (int8) を置いて描かせる。
+          # ComfyUI を起動しておくこと: C:\root\ComfyUI\start_comfyui.bat
+          # local（diffusers）/ openai / pollinations も選べる。
+          provider: comfyui
+          steps: 4
+          baseURL: http://127.0.0.1:8188
+          timeoutMs: 180000
+        speech:
+          provider: system
+        transcription:
+          provider: harness
+        # Video runs on this machine: diffusers paints the frames, ffmpeg
+        # writes the MP4. The 'svd' recipe animates one picture; when a text
+        # request meets an image recipe, the plugin paints that keyframe
+        # locally with the motion renderer, so no image provider is called.
+        video:
+          provider: local
+          recipe: svd
+          ffmpegPath: C:\ProgramData\ffmpeg.exe
+        # Charts are drawn with Pillow on this machine: no model, no key, and
+        # a finished PNG in about a second.
+        graphics:
+          theme: light
+          ffmpegPath: C:\ProgramData\ffmpeg.exe
+        # Motion graphics are drawn frame by frame with the same Pillow
+        # renderer, then ffmpeg writes the MP4. No model, no key.
+        motion:
+          ffmpegPath: C:\ProgramData\ffmpeg.exe
+        # A production cuts scenes together with ffmpeg: drawn templates,
+        # pictures with a slow move, and trimmed clips.
+        production:
+          ffmpegPath: C:\ProgramData\ffmpeg.exe
+        # GeneralUser GS (GM/GS, 287 presets). Remove or repoint to disable.
+        soundfont:
+          path: C:\root\instrument-data\GeneralUser-GS.sf2
+
+        # --- v3: 動画編集 (NLE) -------------------------------------------------
+        # ffmpeg / ffprobe は未指定なら video.ffmpegPath と PATH から探す。
+        # 焼き込みフォントは未指定なら meiryo.ttc → YuGothM.ttc → msgothic.ttc の順。
+        #   nle.ffmpegPath / nle.ffprobePath / nle.fontPath / nle.outputDir
+        #   nle.timeoutMs (1800000) / nle.probeTimeoutMs (120000)
+        nle:
+          timeoutMs: 1800000
+          probeTimeoutMs: 120000
+
+        # --- v3: CAD ------------------------------------------------------------
+        # Blender は未指定なら既定のインストール先から探す。単位は mm。
+        # Blender が無くてもプリミティブは純 JS で STL/OBJ に書き出せる。
+        #   cad.blenderPath / cad.pythonPath / cad.outputDir / cad.timeoutMs (300000)
+        cad:
+          timeoutMs: 300000
+
+        # --- v3: DTM ------------------------------------------------------------
+        # 音源は上の soundfont をそのまま使う。
+        #   daw.outputDir / daw.defaultInstrument ('gm:0') / daw.maxSeconds
+        #   daw.maxNotes (20000) / daw.maxTracks (32) / daw.ffmpegPath
+        #   daw.ffmpegTimeoutMs (180000) / daw.mp3Quality (2) / daw.oggQuality (6)
+        daw:
+          defaultInstrument: gm:0
+          maxTracks: 32

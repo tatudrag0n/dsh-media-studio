@@ -1,0 +1,31 @@
+# 穴あきブラケット（CAD の実例）
+# 実行: node cli.mjs render docs/examples/cad-bracket.yaml
+version: 1
+title: 穴あきブラケット
+steps:
+  - id: part
+    tool: cad_model
+    args:
+      parts:
+        - type: box
+          size: [100, 60, 6]
+        - type: hole
+          diameter: 10
+          position: [30, 20, 0]
+        - type: hole
+          diameter: 10
+          position: [-30, 20, 0]
+      format: stl
+      name: bracket
+  - id: drawing
+    tool: cad_drawing
+    args:
+      parts:
+        - type: box
+          size: [100, 60, 6]
+        - type: hole
+          diameter: 10
+          position: [30, 20, 0]
+      views: [front, top, iso]
+      format: png
+      name: bracket-drawing

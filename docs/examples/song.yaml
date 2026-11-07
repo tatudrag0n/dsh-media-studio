@@ -1,0 +1,48 @@
+# 2 小節のスケッチ（DTM の実例）
+# 実行: node cli.mjs render docs/examples/song.yaml
+version: 1
+title: 2 小節のスケッチ
+steps:
+  - id: mix
+    tool: daw_arrange
+    args:
+      arrangement:
+        tempo: 96
+        timeSignature: [4, 4]
+        bars: 2
+        key: Am
+        tracks:
+          - name: melody
+            instrument: strings
+            volume: 1
+            pan: -0.3
+            notes:
+              - { start: 0, duration: 2, pitches: [A4] }
+              - { start: 2, duration: 2, pitches: [C5, E5] }
+          - name: bass
+            instrument: 'gm:33'
+            volume: 0.9
+            notes:
+              - { start: 0, duration: 4, pitches: [A2] }
+              - { start: 4, duration: 4, pitches: [F2] }
+          - name: drums
+            drums: true
+            volume: 0.8
+            notes:
+              - { start: 0, duration: 0.25, pitches: [C2] }
+              - { start: 2, duration: 0.25, pitches: [C2] }
+      name: sketch
+  - id: midi
+    tool: export_daw_project
+    args:
+      format: mid
+      name: sketch
+      arrangement:
+        tempo: 96
+        bars: 2
+        tracks:
+          - name: melody
+            instrument: strings
+            notes:
+              - { start: 0, duration: 2, pitches: [A4] }
+              - { start: 2, duration: 2, pitches: [C5, E5] }

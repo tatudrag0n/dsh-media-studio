@@ -1,0 +1,20 @@
+# 効果音つきのカット（いちばん短い実例）
+# 実行: node cli.mjs render docs/examples/video-cut.yaml
+# 確認: node cli.mjs render docs/examples/video-cut.yaml --dry-run
+version: 1
+title: 効果音つきのカット
+steps:
+  - id: sfx
+    tool: generate_sfx
+    args:
+      kind: whoosh
+      duration: 1.5
+      intensity: 0.7
+  - id: cut
+    tool: edit_video
+    args:
+      clips:
+        - path: media-studio/demo/title.mp4
+          in: 0
+          out: 3
+      name: with-whoosh

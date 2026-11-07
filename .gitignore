@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated media output (runtime artifacts, not source)
+media-studio/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Secrets
+.env
+.env.*
