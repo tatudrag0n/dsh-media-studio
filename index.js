@@ -632,7 +632,7 @@ async function generateImage(ctx, options, input) {
 
   if (options.image.provider === 'comfyui') {
     const model = nonEmpty(input.model) ?? options.image.model ?? 'z-image-turbo';
-    const bytes = await comfyuiGenerate(options.image.baseURL, prompt, size.width, size.height, numberOrUndefined(input.seed), options.image.timeoutMs, input.signal);
+    const bytes = await comfyuiGenerate(options.image.baseURL, prompt, size.width, size.height, numberOrUndefined(input.seed), options.image.timeoutMs, input.signal, options);
     return { data: bytes, mediaType: 'image/png', provider: 'comfyui', model, width: size.width, height: size.height };
   }
 
@@ -649,7 +649,104 @@ async function generateImage(ctx, options, input) {
 }
 
 /** Generate an image through a local ComfyUI instance (Z-Image-Turbo int8). */
-async function comfyuiGenerate(baseURL, prompt, width, height, seed, timeoutMs, signal) {
+let comfyuiStartPromise = null;
+
+const COMFYUI_CANDIDATE_PATHS = [
+  'C:\\\\root\\\\ComfyUI',
+  'C:\\\\ComfyUI',
+];
+
+function comfyuiCandidatePaths(options) {
+  const out = [];
+  if (options?.image?.comfyuiPath) out.push(options.image.comfyuiPath);
+  if (process.env.COMFYUI_PATH) out.push(process.env.COMFYUI_PATH);
+  out.push(...COMFYUI_CANDIDATE_PATHS);
+  if (process.env.USERPROFILE) {
+    out.push(process.env.USERPROFILE + '\\\\ComfyUI');
+    out.push(process.env.USERPROFILE + '\\\\Documents\\\\ComfyUI');
+  }
+  return out;
+}
+
+function findComfyUIPath(options) {
+  for (const c of comfyuiCandidatePaths(options)) {
+    if (c && existsSync(c + '\\\\main.py')) return c;
+  }
+  return null;
+}
+
+async function isComfyUIUp(base) {
+  try {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 3000);
+    const r = await fetch(base + '/system_stats', { signal: controller.signal });
+    clearTimeout(t);
+    return !!r && r.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function ensureComfyUI(baseURL, options) {
+  const base = trimSlash(baseURL ?? 'http://127.0.0.1:8188');
+  if (await isComfyUIUp(base)) return;
+
+  if (comfyuiStartPromise) {
+    try { await comfyuiStartPromise; } catch { /* fall through to retry */ }
+    if (await isComfyUIUp(base)) return;
+  }
+
+  const comfyuiPath = findComfyUIPath(options);
+  if (!comfyuiPath) {
+    throw httpError(502, 'ComfyUI が見つかりません。ComfyUI をインストールするか、image.comfyuiPath を設定してください。ComfyUI was not found; install it or set image.comfyuiPath.');
+  }
+
+  let host = '127.0.0.1';
+  let port = 8188;
+  try {
+    const u = new URL(base);
+    if (u.hostname) host = u.hostname;
+    if (u.port) port = Number(u.port) || port;
+  } catch { /* keep defaults */ }
+
+  const venvPython = join(comfyuiPath, '.venv', 'Scripts', 'python.exe');
+  const pythonExe = existsSync(venvPython) ? venvPython : 'python';
+
+  const outDir = (options?.image?.outputDir && isAbsolute(options.image.outputDir))
+    ? options.image.outputDir
+    : (options?.image?.outputDir ? resolve(options.image.outputDir) : 'C:\\\\root\\\\zimage_out');
+  try { await mkdir(outDir, { recursive: true }); } catch { /* ignore */ }
+
+  const args = ['main.py', '--listen', host, '--port', String(port), '--reserve-vram', '0.8', '--output-directory', outDir];
+
+  const startPromise = (async () => {
+    const child = spawn(pythonExe, args, { cwd: comfyuiPath, windowsHide: true, detached: true, stdio: 'ignore' });
+    child.unref();
+    const deadline = Date.now() + 90000;
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 3000));
+      if (await isComfyUIUp(base)) return;
+      if (child.exitCode !== null) {
+        throw new Error(`ComfyUI が起動に失敗しました (exit ${child.exitCode})。ComfyUI failed to start (exit ${child.exitCode}).`);
+      }
+    }
+    throw new Error('ComfyUI の起動がタイムアウトしました (90秒)。ComfyUI startup timed out (90s).');
+  })();
+
+  comfyuiStartPromise = startPromise;
+  try {
+    await startPromise;
+  } finally {
+    comfyuiStartPromise = null;
+  }
+
+  if (!(await isComfyUIUp(base))) {
+    throw httpError(502, 'ComfyUI の起動に失敗しました。ComfyUI failed to start.');
+  }
+}
+
+async function comfyuiGenerate(baseURL, prompt, width, height, seed, timeoutMs, signal, options) {
+  await ensureComfyUI(baseURL, options);
   const base = trimSlash(baseURL ?? 'http://127.0.0.1:8188');
   const workflow = {
     '1': { class_type: 'UNETLoader', inputs: { unet_name: 'z_image_turbo_int8_convrot.safetensors', weight_dtype: 'default' } },
