@@ -1094,6 +1094,8 @@ window.__ModuleLoader__.load({
                 onClick: () => close(),
               }, h(Icon, { name: 'close', size: 16 })),
           ]),
+          h('div', { key: 'composer', className: 'mstudio-composer', style: { margin: '0 12px 10px', padding: '10px', borderRadius: '10px', background: 'rgba(127,127,127,0.07)' } },
+            h(PromptTab, { t, capabilities })),
           null,
           null,
           null,
