@@ -2972,7 +2972,7 @@ function toolRoutes(ctx) {
       if (!PANEL_TOOL_NAMES.has(name)) {
         throw httpError(400, `このツールはパネルから実行できません: ${name === '' ? '(未指定)' : name}`);
       }
-      const tool = ctx?.get?.('tools')?.get?.(name);
+      const tool = ctx?.tools?.get?.(name) ?? ctx?.get?.('tools')?.get?.(name);
       if (tool === undefined || typeof tool.execute !== 'function') {
         throw httpError(503, `${name} が登録されていません。メディアスタジオのプラグインが有効か確認してください。`);
       }

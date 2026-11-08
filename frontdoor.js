@@ -108,7 +108,7 @@ export async function runPrompt(ctx, options, helpers, request) {
   // （どのみち `resolvePlan` がツール名を優先する）。
   const intent = parseIntent(prompt !== '' ? prompt : namedTool, { hint: request?.hint });
   const plan = resolvePlan(intent, namedTool);
-  const definition = ctx?.get?.('tools')?.get?.(plan.tool);
+  const definition = ctx?.tools?.get?.(plan.tool) ?? ctx?.get?.('tools')?.get?.(plan.tool);
   if (definition === undefined) {
     throw new Error(
       `${plan.tool} が登録されていません。メディアスタジオのプラグインが有効か確認してください。Tool ${plan.tool} is not registered.`,
@@ -189,7 +189,7 @@ export async function runPrompt(ctx, options, helpers, request) {
  */
 async function tryFallback(ctx, tool, intent, args, exec) {
   if (tool !== 'generate_video') return undefined;
-  const motion = ctx?.get?.('tools')?.get?.('make_motion_graphic');
+  const motion = ctx?.tools?.get?.('make_motion_graphic') ?? ctx?.get?.('tools')?.get?.('make_motion_graphic');
   if (motion === undefined) return undefined;
   const fallbackArgs = filterArgs(motion, {
     text: shortTitle(intent.subject, 40),
@@ -305,11 +305,13 @@ export function mediaCreateTool(ctx, options, helpers) {
         },
       },
       render(_args, value) {
-        const definition = ctx?.get?.('tools')?.get?.(value.tool);
+        const definition = ctx?.tools?.get?.(value.tool) ?? ctx?.get?.('tools')?.get?.(value.tool);
         const blocks = definition?.output?.render?.(value.args ?? {}, value.value) ?? [];
         // One text block reads better than two adjacent ones the harness would
         // concatenate without a separator.
-        const texts = blocks.filter((block) => block.type === 'text').map((block) => block.text);
+        const texts = (blocks.length === 0 && typeof value?.text === 'string' && value.text !== '')
+          ? [value.text]
+          : blocks.filter((block) => block.type === 'text').map((block) => block.text);
         const rest = blocks.filter((block) => block.type !== 'text');
         const text = [`解釈: ${value.summary}`, ...(value.note === undefined ? [] : [value.note]), ...texts].filter((line) => typeof line === 'string' && line !== '').join('\n');
         const tail = value.asset === undefined ? '' : `\n再利用するときはこのパスを渡してください: ${value.asset.path}`;
