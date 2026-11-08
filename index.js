@@ -74,7 +74,7 @@ import {
 } from './score.js';
 import { PROMPT_EXAMPLES, describePlan, parseMusicPrompt } from './prompt.js';
 import { registerExtraTools } from './extra.js';
-import { mediaCreateTool, readMedia, runPrompt, MEDIA_STUDIO_HINT } from './frontdoor.js';
+import { mediaCreateTool, readMedia, runPrompt, MEDIA_STUDIO_HINT, registerToolDefinition } from './frontdoor.js';
 import { STUDIO_TOOL_NAMES } from './tools-list.js';
 import { generateText, resolveWritingRoute } from './writing.js';
 import {
@@ -329,6 +329,14 @@ const videoCache = new Map();
 /** Register the tools, the panel routes, and their disposers. */
 export function apply(ctx, config) {
   const options = resolveOptions(config);
+  // Keep a local copy of every registered tool definition so that frontdoor.js
+  // can reach execute()/output.render() even when the host only exposes
+  // schemas via ctx.tools.get / ctx.get('tools').get.
+  const originalRegister = ctx.tools.register.bind(ctx.tools);
+  ctx.tools.register = (definition) => {
+    registerToolDefinition(definition);
+    return originalRegister(definition);
+  };
   try {
     writeFile('C:\\root\\tmp\\media_cfg_debug.json', JSON.stringify({ raw: config, image: options.image }, null, 2)).catch(() => {});
   } catch {}

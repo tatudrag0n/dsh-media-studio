@@ -1,5 +1,15 @@
+// Module-level registry of full tool definitions, populated by index.js so that
+// render() and runPrompt() can always reach execute()/output.render() even when
+// the host's ctx.get('tools') only exposes schemas.
+const _toolRegistry = new Map();
+export function registerToolDefinition(def) {
+  if (def && typeof def.name === 'string') _toolRegistry.set(def.name, def);
+}
+export function getToolDefinition(name) {
+  return _toolRegistry.get(name);
+}
+
 /**
- * 入口 (the front door).
  *
  * 1 行のプロンプトを、登録済みのツール 1 つに橋渡しする。どのツールも
  * `ctx.tools.get(name)` から取り出すので、ここは生成処理を持たない。
@@ -108,7 +118,7 @@ export async function runPrompt(ctx, options, helpers, request) {
   // （どのみち `resolvePlan` がツール名を優先する）。
   const intent = parseIntent(prompt !== '' ? prompt : namedTool, { hint: request?.hint });
   const plan = resolvePlan(intent, namedTool);
-  const definition = ctx?.tools?.get?.(plan.tool) ?? ctx?.get?.('tools')?.get?.(plan.tool);
+  const definition = getToolDefinition(plan.tool) ?? ctx?.tools?.get?.(plan.tool) ?? ctx?.get?.('tools')?.get?.(plan.tool);
   if (definition === undefined) {
     throw new Error(
       `${plan.tool} が登録されていません。メディアスタジオのプラグインが有効か確認してください。Tool ${plan.tool} is not registered.`,
@@ -189,7 +199,7 @@ export async function runPrompt(ctx, options, helpers, request) {
  */
 async function tryFallback(ctx, tool, intent, args, exec) {
   if (tool !== 'generate_video') return undefined;
-  const motion = ctx?.tools?.get?.('make_motion_graphic') ?? ctx?.get?.('tools')?.get?.('make_motion_graphic');
+  const motion = getToolDefinition('make_motion_graphic') ?? ctx?.tools?.get?.('make_motion_graphic') ?? ctx?.get?.('tools')?.get?.('make_motion_graphic');
   if (motion === undefined) return undefined;
   const fallbackArgs = filterArgs(motion, {
     text: shortTitle(intent.subject, 40),
@@ -305,7 +315,7 @@ export function mediaCreateTool(ctx, options, helpers) {
         },
       },
       render(_args, value) {
-        const definition = ctx?.tools?.get?.(value.tool) ?? ctx?.get?.('tools')?.get?.(value.tool);
+        const definition = getToolDefinition(value.tool) ?? ctx?.tools?.get?.(value.tool) ?? ctx?.get?.('tools')?.get?.(value.tool);
         const blocks = definition?.output?.render?.(value.args ?? {}, value.value) ?? [];
         // One text block reads better than two adjacent ones the harness would
         // concatenate without a separator.
