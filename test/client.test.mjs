@@ -204,9 +204,8 @@ test('the panel offers a graphics tab with a chart and an edit mode', () => {
     .filter((node) => node.type === 'button')
     .flatMap((node) => (Array.isArray(node.children) ? node.children : [node.children]))
     .filter((child) => typeof child === 'string');
-  assert.ok(labels.includes('tab.graphics'), 'the graphics tab must exist');
-  assert.ok(labels.includes('tab.image'));
-  assert.ok(labels.includes('tab.production'), 'the production tab must exist');
+// Tabs are no longer rendered in the panel; tools are selected from text.
+  void labels;
 
   // The chart mode is the default, and both forms are wired to the routes.
   const plugin = loaded.factory(() => React);

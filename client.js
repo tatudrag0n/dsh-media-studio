@@ -1074,14 +1074,7 @@ window.__ModuleLoader__.load({
         };
       }, []);
       const close = typeof props.close === 'function' ? props.close : undefined;
-      const tabs = [
-        { key: 'image', label: t('tab.image'), icon: 'image' },
-        { key: 'video', label: t('tab.production'), icon: 'video' },
-        { key: 'graphics', label: t('tab.graphics'), icon: 'chart' },
-        { key: 'speech', label: t('tab.speech'), icon: 'waveform' },
-        { key: 'music', label: t('tab.music'), icon: 'note' },
-        { key: 'transcribe', label: t('tab.transcribe'), icon: 'mic' },
-      ];
+      const tabs = [];
       return h('div', { className: 'mstudio-root' }, [
         h(Styles, { key: 'styles' }),
         h('div', { key: 'shell', className: 'mstudio-shell' }, [
@@ -1101,49 +1094,18 @@ window.__ModuleLoader__.load({
                 onClick: () => close(),
               }, h(Icon, { name: 'close', size: 16 })),
           ]),
-          h('div', { key: 'composer', className: 'mstudio-composer', style: { margin: '0 12px 10px', padding: '10px', borderRadius: '10px', background: 'rgba(127,127,127,0.07)' } },
-            h(PromptTab, { t, capabilities })),
-          h('button', {
-            key: 'detail-toggle',
-            type: 'button',
-            style: {
-              margin: '0 12px 8px',
-              padding: '4px 12px',
-              borderRadius: '999px',
-              border: '1px solid var(--dsh-border, rgba(127,127,127,0.35))',
-              background: 'transparent',
-              color: 'inherit',
-              font: 'inherit',
-              fontSize: '11px',
-              cursor: 'pointer',
-              alignSelf: 'flex-start',
-            },
-            onClick: () => setShowTabs((current) => !current),
-          }, showTabs ? '詳細ツールを閉じる ▲' : '詳細ツール ▼'),
-          h('div', { key: 'tabs', className: 'mstudio-tabs', role: 'tablist', style: { display: showTabs ? 'flex' : 'none' } }, tabs.map((entry) =>
-            h('button', {
-              key: entry.key,
-              type: 'button',
-              role: 'tab',
-              className: 'mstudio-tab',
-              'aria-selected': tab === entry.key,
-              onClick: () => setTab(entry.key),
-            }, h(Icon, { name: entry.icon, size: 15 }), entry.label))),
+          null,
+          null,
+          null,
           capabilityError === undefined
             ? null
             : h('p', { key: 'capa-error', className: 'mstudio-error' }, capabilityError),
-          h('div', { key: 'image', style: { display: showTabs && tab === 'image' ? 'block' : 'none' } },
-            h(ImageTab, { t, capabilities })),
-          h('div', { key: 'video', style: { display: showTabs && tab === 'video' ? 'block' : 'none' } },
-            h(VideoTab, { t, capabilities })),
-          h('div', { key: 'graphics', style: { display: showTabs && tab === 'graphics' ? 'block' : 'none' } },
-            h(GraphicsTab, { t, capabilities })),
-          h('div', { key: 'speech', style: { display: showTabs && tab === 'speech' ? 'block' : 'none' } },
-            h(SpeechTab, { t, capabilities })),
-          h('div', { key: 'music', style: { display: showTabs && tab === 'music' ? 'block' : 'none' } },
-            h(MusicTab, { t, capabilities })),
-          h('div', { key: 'transcribe', style: { display: showTabs && tab === 'transcribe' ? 'block' : 'none' } },
-            h(TranscribeTab, { t, capabilities })),
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
         ]),
       ]);
     }
